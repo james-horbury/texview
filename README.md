@@ -1,7 +1,7 @@
 # OpenGL Depth Test
 
-This is an introductory exercise of the coordinate systems section of learnopengl.com by [Joey DeVries](https://github.com/JoeyDeVries). 
-[GLFW](https://github.com/glfw/glfw) will be built locally to ensure compatability and stability across environments.
+This is an introductory exercise in the coordinate systems section of learnopengl.com created by [Joey DeVries](https://github.com/JoeyDeVries). 
+The [GLFW](https://github.com/glfw/glfw) library will be built locally to ensure compatability and stability across environments.
 
 # How to Run
 
