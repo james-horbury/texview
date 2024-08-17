@@ -8,3 +8,5 @@ GLFW will be built locally to ensure compatability and stability across environm
 To compile the program simply execute the following from within the src directory:
 
 g++ main.cpp glad.c -ldl -lglfw
+
+![demo](src/demo.gif)

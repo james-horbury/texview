@@ -25,7 +25,7 @@ int main() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   
   // GLFW window creation
-  GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+  GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OpenGL Depth Test", NULL, NULL);
   if (window == NULL) {
     std::cout << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
@@ -109,7 +109,7 @@ int main() {
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
 
-  unsigned int texture1, texture2;
+  unsigned int texture1;
   
   // Load and create texture 1
   glGenTextures(1, &texture1);
@@ -120,47 +120,24 @@ int main() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
   // Set texture filtering parameters
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
   // Load image, create texture, and generate mipmaps
   int width, height, nrChannels;
   stbi_set_flip_vertically_on_load(true);
-  unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+  unsigned char *data = stbi_load("oak_planks.png", &width, &height, &nrChannels, 0);
   if (data) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
   } else {
     std::cout << "Failed to load texture" << std::endl;
   }
-  stbi_image_free(data);
-
-  // Load and create texture 2
-  glGenTextures(1, &texture2);
-  glBindTexture(GL_TEXTURE_2D, texture2);
-
-  // Set texture wrapping parameters
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-  // Set texture filtering parameters
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  // Load image, create texture, and generate mipmaps
-  data = stbi_load("awesomeface.png", &width, &height, &nrChannels, 0);
-  if (data) {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  } else {
-    std::cout << "Failed to load texture" << std::endl;
-  }
-  stbi_image_free(data);
+  stbi_image_free(data); 
 
   // Tell opengl which texture unit belongs to what sampler (only has to be done once)
   ourShader.use();
   ourShader.setInt("texture1", 0);
-  ourShader.setInt("texture2", 1);
 
   // Render loop
   while(!glfwWindowShouldClose(window)) {
@@ -168,14 +145,12 @@ int main() {
     processInput(window);
 
     // Render
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.86f, 0.86f, 0.86f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Bind texture
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture2);
+    glBindTexture(GL_TEXTURE_2D, texture1); 
  
     // Activate shader
     ourShader.use();
