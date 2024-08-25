@@ -8,4 +8,4 @@ and stability across environments.
 
 To compile the program simply execute the `make` command from the project directory. Use `make clean` to remove all binaries.
 
-![demo](src/demo.gif)
+![demo](assets/demo.gif)

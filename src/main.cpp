@@ -197,11 +197,16 @@ int main() {
 
     // Snap frame to top-left corner of GLFW window
     ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(ImVec2(SCR_WIDTH / (2 * 1.618), SCR_HEIGHT / (2 * 1.618)));
+    //ImGui::SetNextWindowSize(ImVec2(SCR_WIDTH / (2 * 1.618), SCR_HEIGHT / (2 * 1.618)));
 
-    ImGui::Begin("Background Color", nullptr, ImGuiWindowFlags_NoResize);
+    ImGui::Begin("Texview");
+    
+    static bool check = false;
+    ImGui::Checkbox("Enable Darkmode", &check);
 
-    ImGui::Text("This window cannot be resized.");
+    ImGui::CollapsingHeader("Window Options");
+    ImGui::CollapsingHeader("Lighting Options");
+    ImGui::CollapsingHeader("Asset Browser");
 
     ImGui::End();
     ImGui::Render();
