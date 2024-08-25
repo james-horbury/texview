@@ -1,3 +1,7 @@
+#include "../lib/imgui/imgui.h"
+#include "../lib/imgui/backends/imgui_impl_glfw.h"
+#include "../lib/imgui/backends/imgui_impl_opengl3.h"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -25,7 +29,7 @@ int main() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   
   // GLFW window creation
-  GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OpenGL Depth Test", NULL, NULL);
+  GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OpenGL Texture Viewer", NULL, NULL);
   if (window == NULL) {
     std::cout << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
@@ -43,8 +47,8 @@ int main() {
   // Configure global opengl state
   glEnable(GL_DEPTH_TEST);
 
-  // Build and compile shader program
-  Shader ourShader("texture.vs", "texture.fs");
+  // Build and compile shaders
+  Shader ourShader("shaders/shader.vs", "shaders/shader.fs");
   
   // Set vertex data/buffers and configure vertex attributes
   float vertices[] = {
@@ -126,7 +130,7 @@ int main() {
   // Load image, create texture, and generate mipmaps
   int width, height, nrChannels;
   stbi_set_flip_vertically_on_load(true);
-  unsigned char *data = stbi_load("oak_planks.png", &width, &height, &nrChannels, 0);
+  unsigned char *data = stbi_load("assets/oak_planks.png", &width, &height, &nrChannels, 0);
   if (data) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -139,12 +143,23 @@ int main() {
   ourShader.use();
   ourShader.setInt("texture1", 0);
 
+  // Initialize imgui
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO& io = ImGui::GetIO();
+  (void)io; // prevents unused variable warning from compiler
+
+  ImGui::StyleColorsDark();
+  
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  ImGui_ImplOpenGL3_Init("#version 330");
+
   // Render loop
   while(!glfwWindowShouldClose(window)) {
     // Input
     processInput(window);
 
-    // Render
+    // Rendering commands
     glClearColor(0.86f, 0.86f, 0.86f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -174,11 +189,32 @@ int main() {
     // Render cube
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    // Render GUI
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    // Snap frame to top-left corner of GLFW window
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(SCR_WIDTH / (2 * 1.618), SCR_HEIGHT / (2 * 1.618)));
+
+    ImGui::Begin("Background Color", nullptr, ImGuiWindowFlags_NoResize);
+
+    ImGui::Text("This window cannot be resized.");
+
+    ImGui::End();
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
  
     // Swap buffers and poll IO events
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
+
+  ImGui_ImplGlfw_Shutdown();
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui::DestroyContext();
 
   // Free all resources
   glDeleteVertexArrays(1, &VAO);
