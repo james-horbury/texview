@@ -14,13 +14,21 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <iostream>
+#include <string>
+#include <map>
+
 // Forward declarations
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 void RenderGui(void);
+GLuint loadTexture(const std::string& textureName);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+
+// Texture bank to store loaded textures
+std::map<std::string, GLuint> textureBank;
 
 int main() {
   // Initialize and configure GLFW
@@ -267,4 +275,48 @@ void RenderGui(void) {
   ImGui::CollapsingHeader("Lighting Options");
 
   ImGui::End();
+}
+
+GLuint loadTexture(const std::string& textureName) {
+  // Check if texture already loaded
+  if (textureBank.find(textureName) != textureBank.end()) {
+    return textureBank[textureName];
+  }
+
+  // Load texture data from file
+  std::string texturePath = "assets/" + textureName;
+  int width, height, nrChannels;
+  unsigned char *data = stbi_load(texturePath.c_str(), &width, &height, &nrChannels, 0);
+  if (!data) {
+    std::cerr << "Failed to load texture: " << textureName << std::endl;
+    return 0;
+  }
+
+  // Generate OpenGL texture ID
+  GLuint textureID;
+  glGenTexture(1, &textureID);
+  glBindTexture(GL_TEXTURE_2D, textureID);
+
+  // Set texture parameters
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  // Determine the format (RGB or RGBA) based on the number of channels
+  GLenum format = GL_RGB;
+  if (nrChannels == 4)
+      format = GL_RGBA;
+
+  // Upload the texture data to the GPU
+  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+  glGenerateMipmap(GL_TEXTURE_2D);
+
+  // Free the image memory
+  stbi_image_free(data);
+
+  // Store the texture ID in the bank
+  textureBank[textureName] = textureID;
+
+  return textureID;
 }
