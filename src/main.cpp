@@ -14,10 +14,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+// Forward declarations
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
+void ShowImGuiWindow(void);
 
-// Settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
@@ -143,14 +144,8 @@ int main() {
   ourShader.use();
   ourShader.setInt("texture1", 0);
 
-  // Initialize imgui
-  IMGUI_CHECKVERSION();
   ImGui::CreateContext();
-  ImGuiIO& io = ImGui::GetIO();
-  (void)io; // prevents unused variable warning from compiler
-
   ImGui::StyleColorsDark();
-  
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init("#version 330");
 
@@ -195,20 +190,10 @@ int main() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    // Snap frame to top-left corner of GLFW window
     ImGui::SetNextWindowPos(ImVec2(0, 0));
-    //ImGui::SetNextWindowSize(ImVec2(SCR_WIDTH / (2 * 1.618), SCR_HEIGHT / (2 * 1.618)));
-
-    ImGui::Begin("Texview");
     
-    static bool check = false;
-    ImGui::Checkbox("Enable Darkmode", &check);
+    ShowImGuiWindow();
 
-    ImGui::CollapsingHeader("Window Options");
-    ImGui::CollapsingHeader("Lighting Options");
-    ImGui::CollapsingHeader("Asset Browser");
-
-    ImGui::End();
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
  
@@ -237,4 +222,43 @@ void processInput(GLFWwindow *window) {
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
+}
+
+void ShowImGuiWindow(void) {
+  // Check context and verify ABI compatibility between caller code and compiled ver of ImGui
+  IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing Dear ImGui context. Refer to examples app!");
+  IMGUI_CHECKVERSION();
+
+  // Window flags
+  static bool lock_window = false;
+  static bool enable_darkmode = false;
+  static bool disable_background = false;
+
+  ImGuiWindowFlags window_flags = 0;
+  if (lock_window)        window_flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
+  //if (enable_darkmode)    window_flags |= ImGuiWindowFlags_EnableDarkmode;
+  if (disable_background) window_flags |= ImGuiWindowFlags_NoBackground;
+
+  // Main body of window starts here
+  if (!ImGui::Begin("Texview Menu", nullptr, window_flags | ImGuiWindowFlags_AlwaysAutoResize)) {
+    // Early out if window is collapsed, as an optimization
+    ImGui::End();
+    return;
+  }
+
+  if (ImGui::CollapsingHeader("Window Options")) {
+    //ImGuiIO& io = ImGui::GetIO();
+    
+    if (ImGui::BeginTable("split", 2)) {
+      ImGui::TableNextColumn(); ImGui::Checkbox("Lock window", &lock_window);
+      ImGui::TableNextColumn(); ImGui::Checkbox("Enable darkmode", &enable_darkmode);
+      ImGui::TableNextColumn(); ImGui::Checkbox("Disable background", &disable_background);
+      ImGui::EndTable();
+    }
+  }
+
+  ImGui::CollapsingHeader("Lighting Options");
+  ImGui::CollapsingHeader("Asset Browser");
+
+  ImGui::End();
 }

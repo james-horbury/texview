@@ -1,8 +1,8 @@
 # OpenGL Texture Viewer
 
 This is an adaptation of an introductory exercise in the coordinate systems section of [learnopengl.com](https://learnopengl.com/Getting-started/Coordinate-Systems), 
-created by [Joey DeVries](https://github.com/JoeyDeVries). The [GLFW](https://github.com/glfw/glfw) library will be built locally to ensure compatability 
-and stability across environments.
+created by [Joey DeVries](https://github.com/JoeyDeVries). All libraries that require precompiled binaries will be built locally to ensure compatability and stability 
+across environments.
 
 # How to Run
 
