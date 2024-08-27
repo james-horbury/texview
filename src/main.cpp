@@ -17,7 +17,7 @@
 // Forward declarations
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
-void ShowImGuiWindow(void);
+void RenderGui(void);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -192,7 +192,7 @@ int main() {
 
     ImGui::SetNextWindowPos(ImVec2(0, 0));
     
-    ShowImGuiWindow();
+    RenderGui();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -224,20 +224,21 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
-void ShowImGuiWindow(void) {
+void RenderGui(void) {
   // Check context and verify ABI compatibility between caller code and compiled ver of ImGui
   IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing Dear ImGui context. Refer to examples app!");
   IMGUI_CHECKVERSION();
 
   // Window flags
-  static bool lock_window = false;
+  static bool unlock_window = false;
   static bool enable_darkmode = false;
   static bool disable_background = false;
 
   ImGuiWindowFlags window_flags = 0;
-  if (lock_window)        window_flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
-  //if (enable_darkmode)    window_flags |= ImGuiWindowFlags_EnableDarkmode;
+
+  if (unlock_window)        window_flags |= ImGuiWindowFlags_NoMove;
   if (disable_background) window_flags |= ImGuiWindowFlags_NoBackground;
+  //if (enable_darkmode)    window_flags |= ImGuiWindowFlags_EnableDarkmode;
 
   // Main body of window starts here
   if (!ImGui::Begin("Texview Menu", nullptr, window_flags | ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -250,15 +251,20 @@ void ShowImGuiWindow(void) {
     //ImGuiIO& io = ImGui::GetIO();
     
     if (ImGui::BeginTable("split", 2)) {
-      ImGui::TableNextColumn(); ImGui::Checkbox("Lock window", &lock_window);
+      ImGui::TableNextColumn(); ImGui::Checkbox("Unlock window", &unlock_window);
       ImGui::TableNextColumn(); ImGui::Checkbox("Enable darkmode", &enable_darkmode);
       ImGui::TableNextColumn(); ImGui::Checkbox("Disable background", &disable_background);
       ImGui::EndTable();
     }
   }
 
+  if (ImGui::CollapsingHeader("Asset Browser")) {
+    const char* items[] = {"Oak Planks", "Dirt", "Stone", "Glass"};
+    static int item_current = 1;
+    ImGui::ListBox("Textures", &item_current, items, IM_ARRAYSIZE(items), 4);
+  }
+
   ImGui::CollapsingHeader("Lighting Options");
-  ImGui::CollapsingHeader("Asset Browser");
 
   ImGui::End();
 }

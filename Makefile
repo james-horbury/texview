@@ -1,3 +1,7 @@
+# Directories
+SRC_DIR := src
+BIN_DIR := bin
+
 # Compiler and flags
 CXX := g++
 CXXFLAGS := -Iimgui -Iimgui/backends -Wall -O2
@@ -15,10 +19,10 @@ IMGUI_SRC := lib/imgui/imgui.cpp \
              lib/imgui/backends/imgui_impl_opengl3.cpp
 
 # Your project's source files
-SRC := src/main.cpp src/glad.c $(IMGUI_SRC)
+SRC := $(SRC_DIR)/main.cpp $(SRC_DIR)/glad.c $(IMGUI_SRC)
 
 # Output binary
-TARGET := texview
+TARGET := $(BIN_DIR)/texview
 
 # Default target
 all: $(TARGET)
