@@ -1,6 +1,10 @@
 // Media
 assets/demo.mp4
 
+// Local builds
+bin/assimp/build/*
+bin/glfw/build/*
+
 // Generated files and binaries
 imgui.ini
 bin/*
