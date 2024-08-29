@@ -21,14 +21,14 @@
 // Forward declarations
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
-void RenderGui(void);
-GLuint loadTexture(const std::string& textureName);
+void renderGui(void);
+unsigned int loadTexture(const std::string& textureName);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // Texture bank to store loaded textures
-std::map<std::string, GLuint> textureBank;
+std::map<std::string, unsigned int> textureBank;
 
 int main() {
   // Initialize and configure GLFW
@@ -120,33 +120,7 @@ int main() {
 
   // Texture coordinate attribute
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-
-  unsigned int texture1;
-  
-  // Load and create texture 1
-  glGenTextures(1, &texture1);
-  glBindTexture(GL_TEXTURE_2D, texture1);
-
-  // Set the texture wrapping params
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-  // Set texture filtering parameters
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-  // Load image, create texture, and generate mipmaps
-  int width, height, nrChannels;
-  stbi_set_flip_vertically_on_load(true);
-  unsigned char *data = stbi_load("assets/oak_planks.png", &width, &height, &nrChannels, 0);
-  if (data) {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  } else {
-    std::cout << "Failed to load texture" << std::endl;
-  }
-  stbi_image_free(data); 
+  glEnableVertexAttribArray(1); 
 
   // Tell opengl which texture unit belongs to what sampler (only has to be done once)
   ourShader.use();
@@ -166,9 +140,17 @@ int main() {
     glClearColor(0.86f, 0.86f, 0.86f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Bind texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture1); 
+    // Render GUI with asset manager
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    
+    renderGui();
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
  
     // Activate shader
     ourShader.use();
@@ -191,19 +173,7 @@ int main() {
 
     // Render cube
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-
-    // Render GUI
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
-    
-    RenderGui();
-
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    glDrawArrays(GL_TRIANGLES, 0, 36); 
  
     // Swap buffers and poll IO events
     glfwSwapBuffers(window);
@@ -232,21 +202,19 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
-void RenderGui(void) {
+void renderGui(void) {
   // Check context and verify ABI compatibility between caller code and compiled ver of ImGui
   IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing Dear ImGui context. Refer to examples app!");
   IMGUI_CHECKVERSION();
 
   // Window flags
   static bool unlock_window = false;
-  static bool enable_darkmode = false;
   static bool disable_background = false;
 
   ImGuiWindowFlags window_flags = 0;
 
   if (unlock_window)        window_flags |= ImGuiWindowFlags_NoMove;
   if (disable_background) window_flags |= ImGuiWindowFlags_NoBackground;
-  //if (enable_darkmode)    window_flags |= ImGuiWindowFlags_EnableDarkmode;
 
   // Main body of window starts here
   if (!ImGui::Begin("Texview Menu", nullptr, window_flags | ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -255,65 +223,60 @@ void RenderGui(void) {
     return;
   }
 
+  // TODO: Program other checkbox functions
   if (ImGui::CollapsingHeader("Window Options")) {
-    //ImGuiIO& io = ImGui::GetIO();
-    
     if (ImGui::BeginTable("split", 2)) {
       ImGui::TableNextColumn(); ImGui::Checkbox("Unlock window", &unlock_window);
-      ImGui::TableNextColumn(); ImGui::Checkbox("Enable darkmode", &enable_darkmode);
       ImGui::TableNextColumn(); ImGui::Checkbox("Disable background", &disable_background);
       ImGui::EndTable();
     }
   }
 
-  if (ImGui::CollapsingHeader("Asset Browser")) {
-    const char* items[] = {"Oak Planks", "Dirt", "Stone", "Glass"};
-    static int item_current = 1;
-    ImGui::ListBox("Textures", &item_current, items, IM_ARRAYSIZE(items), 4);
+  // TODO: Debug asset browser
+  const char* textures[] = {"oak_planks.png", "dirt.png", "stone.png", "glass.png"};
+  static int current_texture = 0;
+  
+  if (ImGui::CollapsingHeader("Asset Browser")) { 
+    if (ImGui::ListBox("Textures", &current_texture, textures, IM_ARRAYSIZE(textures), 4)) {
+      current_texture = loadTexture(textures[current_texture]);
+    }
   }
 
+  // TODO: Implement later
   ImGui::CollapsingHeader("Lighting Options");
 
   ImGui::End();
 }
 
-GLuint loadTexture(const std::string& textureName) {
+unsigned int loadTexture(const std::string& textureName) {
   // Check if texture already loaded
   if (textureBank.find(textureName) != textureBank.end()) {
     return textureBank[textureName];
   }
+  
+  unsigned int textureID;
 
-  // Load texture data from file
-  std::string texturePath = "assets/" + textureName;
-  int width, height, nrChannels;
-  unsigned char *data = stbi_load(texturePath.c_str(), &width, &height, &nrChannels, 0);
-  if (!data) {
-    std::cerr << "Failed to load texture: " << textureName << std::endl;
-    return 0;
-  }
-
-  // Generate OpenGL texture ID
-  GLuint textureID;
-  glGenTexture(1, &textureID);
+  glGenTextures(1, &textureID);
   glBindTexture(GL_TEXTURE_2D, textureID);
 
-  // Set texture parameters
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  // Determine the format (RGB or RGBA) based on the number of channels
-  GLenum format = GL_RGB;
-  if (nrChannels == 4)
-      format = GL_RGBA;
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-  // Upload the texture data to the GPU
-  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-  glGenerateMipmap(GL_TEXTURE_2D);
-
-  // Free the image memory
-  stbi_image_free(data);
+  // Load texture data and generate mipmaps
+  int width, height, nrChannels;
+  stbi_set_flip_vertically_on_load(true);
+  std::string texturePath = "assets/" + textureName;
+  unsigned char *data = stbi_load(texturePath.c_str(), &width, &height, &nrChannels, 0);
+  if (data) {
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+  } else {
+    std::cout << "Failed to load texture: " << textureName << std::endl;
+  }
+  stbi_image_free(data); 
 
   // Store the texture ID in the bank
   textureBank[textureName] = textureID;
