@@ -122,10 +122,37 @@ int main() {
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(1); 
 
+  // Load default texture on start
+  unsigned int texture_default;
+  glGenTextures(1, &texture_default);
+  glBindTexture(GL_TEXTURE_2D, texture_default);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  // Load image, create texture, and generate mipmaps
+  int width, height, nrChannels;
+  stbi_set_flip_vertically_on_load(true);
+  unsigned char *data = stbi_load("assets/oak_planks.png", &width, &height, &nrChannels, 0);
+  if (data) {
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+  } else {
+    std::cout << "Failed to load texture" << std::endl;
+  }
+  stbi_image_free(data);
+
+  // Store default texture preemptivly
+  textureBank["oak_planks.png"] = texture_default;
+
   // Tell opengl which texture unit belongs to what sampler (only has to be done once)
   ourShader.use();
-  ourShader.setInt("texture1", 0);
+  ourShader.setInt("oak_planks.png", 0);
 
+  // Create imgui context
   ImGui::CreateContext();
   ImGui::StyleColorsDark();
   ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -140,7 +167,7 @@ int main() {
     glClearColor(0.86f, 0.86f, 0.86f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Render GUI with asset manager
+    // Start imgui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -180,6 +207,7 @@ int main() {
     glfwPollEvents();
   }
 
+  // Destroy imgui context
   ImGui_ImplGlfw_Shutdown();
   ImGui_ImplOpenGL3_Shutdown();
   ImGui::DestroyContext();
@@ -233,12 +261,27 @@ void renderGui(void) {
   }
 
   // TODO: Debug asset browser
-  const char* textures[] = {"oak_planks.png", "dirt.png", "stone.png", "glass.png"};
-  static int current_texture = 0;
+  // Current list had texture names as they appear as files, area of possible 
+  // improvement with string parsing
+  const char* items[] = {"oak_planks.png", "dirt.png", "stone.png"};
+  static int item_selected = 0; 
   
   if (ImGui::CollapsingHeader("Asset Browser")) { 
-    if (ImGui::ListBox("Textures", &current_texture, textures, IM_ARRAYSIZE(textures), 4)) {
-      current_texture = loadTexture(textures[current_texture]);
+    if (ImGui::BeginListBox("Textures")) {
+      for (int i = 0; i < IM_ARRAYSIZE(items); i++) {
+        const bool is_selected = (item_selected == i);
+        
+        if (ImGui::Selectable(items[i], is_selected))
+          item_selected = i;
+        if (is_selected)
+          ImGui::SetItemDefaultFocus();
+        
+        // WTF is going on here
+        loadTexture(items[item_selected]);  // call loadTexture on current selection
+        glActiveTexture(GL_TEXTURE0);         // TODO: Currently testing
+        glBindTextures(GL_TEXTURE_2D, texture1);
+      }
+      ImGui::EndListBox();
     }
   }
 
@@ -276,7 +319,11 @@ unsigned int loadTexture(const std::string& textureName) {
   } else {
     std::cout << "Failed to load texture: " << textureName << std::endl;
   }
-  stbi_image_free(data); 
+  stbi_image_free(data);
+
+  // TODO: Here do we call something like the following????
+  // ourShader.use();
+  // ourShader.setInt("texture1", 0)
 
   // Store the texture ID in the bank
   textureBank[textureName] = textureID;
