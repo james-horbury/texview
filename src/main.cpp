@@ -16,18 +16,25 @@
 
 #include <iostream>
 #include <string>
-#include <map>
+#include <vector>
+#include <algorithm>
 
 // Forward declarations
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 void renderGui(void);
 unsigned int loadTexture(const std::string& textureName);
+void activateTexture(unsigned int textureID);
+
+struct Texture {
+  std::string name;
+  unsigned int id;
+};
+
+std::vector<Texture> textures;
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-
-std::map<std::string, unsigned int> textureBank;
 
 int main() {
   // Initialize and configure GLFW
@@ -145,11 +152,11 @@ int main() {
   stbi_image_free(data);
 
   // Store default texture preemptivly
-  textureBank["oak_planks.png"] = texture_default;
+  textures.push_back({"oak_planks.png", texture_default});
 
   // Tell opengl which texture unit belongs to what sampler (only has to be done once)
   ourShader.use();
-  ourShader.setInt("oak_planks.png", 0);
+  ourShader.setInt("texture1", 0);
 
   // Create imgui context
   ImGui::CreateContext();
@@ -170,7 +177,8 @@ int main() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+
     renderGui();
 
     ImGui::Render();
@@ -228,56 +236,30 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 }
 
 void renderGui(void) {
-  // Check context and verify ABI compatibility between caller code and compiled ver of ImGui
-  IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing Dear ImGui context. Refer to examples app!");
+  IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing Dear ImGui context");
   IMGUI_CHECKVERSION();
-
-  // Window flags
-  static bool unlock_window = false;
-  static bool disable_background = false;
-
-  ImGuiWindowFlags window_flags = 0;
-
-  if (unlock_window)        window_flags |= ImGuiWindowFlags_NoMove;
-  if (disable_background) window_flags |= ImGuiWindowFlags_NoBackground;
-
-  // Main body of window starts here
-  if (!ImGui::Begin("Texview Menu", nullptr, window_flags | ImGuiWindowFlags_AlwaysAutoResize)) {
-    // Early out if window is collapsed, as an optimization
+ 
+  if (!ImGui::Begin("Texview Menu", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    // Early out if window is collapsed
     ImGui::End();
     return;
-  }
+  } 
 
-  // TODO: Program other checkbox functions
-  if (ImGui::CollapsingHeader("Window Options")) {
-    if (ImGui::BeginTable("split", 2)) {
-      ImGui::TableNextColumn(); ImGui::Checkbox("Unlock window", &unlock_window);
-      ImGui::TableNextColumn(); ImGui::Checkbox("Disable background", &disable_background);
-      ImGui::EndTable();
-    }
-  }
-
-  // TODO: Debug asset browser
-  // Current list had texture names as they appear as files, area of possible 
-  // improvement with string parsing
-  const char* items[] = {"oak_planks.png", "dirt.png", "stone.png"};
+  const char* items[] = {"oak_planks.png", "dirt.png", "stone.png", "glass.png"};
   static int item_selected = 0; 
   
   if (ImGui::CollapsingHeader("Asset Browser")) { 
     if (ImGui::BeginListBox("Textures")) {
       for (int i = 0; i < IM_ARRAYSIZE(items); i++) {
         const bool is_selected = (item_selected == i);
-        
         if (ImGui::Selectable(items[i], is_selected))
           item_selected = i;
         if (is_selected)
-          ImGui::SetItemDefaultFocus();
-        
-        // WTF is going on here
-        loadTexture(items[item_selected]);  // call loadTexture on current selection
-        glActiveTexture(GL_TEXTURE0);         // TODO: Currently testing
-        glBindTextures(GL_TEXTURE_2D, texture1);
+          ImGui::SetItemDefaultFocus(); 
       }
+      // TODO: Currently testing this 
+      unsigned int textureID = loadTexture(items[item_selected]);
+      glBindTexture(GL_TEXTURE_2D, textureID);
       ImGui::EndListBox();
     }
   }
@@ -286,11 +268,17 @@ void renderGui(void) {
 }
 
 unsigned int loadTexture(const std::string& textureName) {
-  // Check if texture already loaded
-  if (textureBank.find(textureName) != textureBank.end()) {
-    return textureBank[textureName];
+  // Check if texture has already been loaded
+  auto it = std::find_if(textures.begin(), textures.end(), [textureName](const Texture& texture) {
+    return texture.name == textureName;
+  });
+  if (it != textures.end()) {
+    //std::cout << "Found texture: " << it->name << ", ID: " << it->id << "\n";
+    return it->id;
+  } else {
+    // std::cout << "Loading new texture with name " << textureName << "\n";
   }
-  
+
   unsigned int textureID;
 
   glGenTextures(1, &textureID);
@@ -315,12 +303,13 @@ unsigned int loadTexture(const std::string& textureName) {
   }
   stbi_image_free(data);
 
-  // TODO: Here do we call something like the following????
-  // ourShader.use();
-  // ourShader.setInt(textureName, 0)
-
-  // Store the texture ID in the bank
-  textureBank[textureName] = textureID;
+  // Store new texture info
+  textures.push_back({textureName, textureID});
 
   return textureID;
+}
+
+// Objective to just rebind active texture
+void activateTexture(unsigned int textureID) {
+  glBindTexture(GL_TEXTURE_2D, textureID);
 }
