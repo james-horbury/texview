@@ -1,6 +1,10 @@
-// Media
-assets/demo.mp4
+// Ignore all media
+assets/media/*
 
-// Generated files and binaries
+// Ignore local builds
+bin/assimp/build/*
+bin/glfw/build/*
+
+// Ignore generated files and binaries
 imgui.ini
-bin/texview
+bin/*
