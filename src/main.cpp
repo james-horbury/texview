@@ -27,7 +27,6 @@ unsigned int loadTexture(const std::string& textureName);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-// Texture bank to store loaded textures
 std::map<std::string, unsigned int> textureBank;
 
 int main() {
@@ -171,8 +170,6 @@ int main() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
     
     renderGui();
 
@@ -285,9 +282,6 @@ void renderGui(void) {
     }
   }
 
-  // TODO: Implement later
-  ImGui::CollapsingHeader("Lighting Options");
-
   ImGui::End();
 }
 
@@ -323,7 +317,7 @@ unsigned int loadTexture(const std::string& textureName) {
 
   // TODO: Here do we call something like the following????
   // ourShader.use();
-  // ourShader.setInt("texture1", 0)
+  // ourShader.setInt(textureName, 0)
 
   // Store the texture ID in the bank
   textureBank[textureName] = textureID;
