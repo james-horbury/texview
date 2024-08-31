@@ -22,9 +22,10 @@
 // Forward declarations
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
+
 void renderGui(void);
+static void helpMarker(const char* desc);
 unsigned int loadTexture(const std::string& textureName);
-void activateTexture(unsigned int textureID);
 
 struct Texture {
   std::string name;
@@ -108,18 +109,17 @@ int main() {
      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
     -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-  };  
-   
+  };
+
   unsigned int VBO, VAO;
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);
 
-  // Bind vertex array object first, then bind and set vertex buffer
   glBindVertexArray(VAO);
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
- 
+
   // Position attribute
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0); 
@@ -160,7 +160,7 @@ int main() {
 
   // Create imgui context
   ImGui::CreateContext();
-  ImGui::StyleColorsDark();
+  ImGui::StyleColorsLight();
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init("#version 330");
 
@@ -205,7 +205,7 @@ int main() {
 
     // Render cube
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36); 
+    glDrawArrays(GL_TRIANGLES, 0, 36);
  
     // Swap buffers and poll IO events
     glfwSwapBuffers(window);
@@ -220,6 +220,7 @@ int main() {
   // Free all resources
   glDeleteVertexArrays(1, &VAO);
   glDeleteBuffers(1, &VBO);
+  //glDeleteBuffers(1, &EBO);
 
   glfwTerminate();
   return 0;
@@ -235,17 +236,29 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
+static void helpMarker(const char* desc) {
+  ImGui::TextDisabled("(?)");
+  if (ImGui::BeginItemTooltip()) {
+    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+    ImGui::TextUnformatted(desc);
+    ImGui::PopTextWrapPos();
+    ImGui::EndTooltip();
+  }
+}
+
 void renderGui(void) {
   IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing Dear ImGui context");
   IMGUI_CHECKVERSION();
  
-  if (!ImGui::Begin("Texview Menu", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+  ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_AlwaysAutoResize; 
+  if (!ImGui::Begin("Texview Menu", nullptr, window_flags)) {
     // Early out if window is collapsed
     ImGui::End();
     return;
-  } 
+  }
 
-  const char* items[] = {"oak_planks.png", "dirt.png", "stone.png", "glass.png"};
+  const char* items[] = {"oak_planks.png", "acacia_planks.png", "dark_oak_planks.png", "jungle_planks.png", 
+                         "bamboo_planks.png", "mangrove_planks.png", "spruce_planks.png", "birch_planks.png"};
   static int item_selected = 0; 
   
   if (ImGui::CollapsingHeader("Asset Browser")) { 
@@ -262,6 +275,7 @@ void renderGui(void) {
       glBindTexture(GL_TEXTURE_2D, textureID);
       ImGui::EndListBox();
     }
+    ImGui::SameLine(); helpMarker("Use the listbox to control which texture is bound.");
   }
 
   ImGui::End();
@@ -309,7 +323,4 @@ unsigned int loadTexture(const std::string& textureName) {
   return textureID;
 }
 
-// Objective to just rebind active texture
-void activateTexture(unsigned int textureID) {
-  glBindTexture(GL_TEXTURE_2D, textureID);
-}
+
