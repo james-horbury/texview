@@ -24,7 +24,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 
 void renderGui(void);
-static void helpMarker(const char* desc);
+void helpMarker(const char* desc);
 unsigned int loadTexture(const std::string& textureName);
 
 struct Texture {
@@ -38,7 +38,6 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 int main() {
-  // Initialize and configure GLFW
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -63,7 +62,6 @@ int main() {
   // Configure global opengl state
   glEnable(GL_DEPTH_TEST);
 
-  // Build and compile shaders
   Shader ourShader("shaders/shader.vs", "shaders/shader.fs");
   
   // Set vertex data/buffers and configure vertex attributes
@@ -173,7 +171,7 @@ int main() {
     glClearColor(0.86f, 0.86f, 0.86f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Start imgui frame
+    // Start imgui frame and render gui
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -220,7 +218,6 @@ int main() {
   // Free all resources
   glDeleteVertexArrays(1, &VAO);
   glDeleteBuffers(1, &VBO);
-  //glDeleteBuffers(1, &EBO);
 
   glfwTerminate();
   return 0;
@@ -236,7 +233,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
-static void helpMarker(const char* desc) {
+void helpMarker(const char* desc) {
   ImGui::TextDisabled("(?)");
   if (ImGui::BeginItemTooltip()) {
     ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
@@ -270,7 +267,7 @@ void renderGui(void) {
         if (is_selected)
           ImGui::SetItemDefaultFocus(); 
       }
-      // TODO: Currently testing this 
+
       unsigned int textureID = loadTexture(items[item_selected]);
       glBindTexture(GL_TEXTURE_2D, textureID);
       ImGui::EndListBox();
