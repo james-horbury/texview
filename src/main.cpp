@@ -69,7 +69,7 @@ int main() {
   // Configure global opengl state
   glEnable(GL_DEPTH_TEST);
 
-  Shader voxelShader("shaders/shader.vs", "shaders/shader.fs");
+  Shader voxelShader("shaders/voxelshader.vs", "shaders/voxelshader.fs");
   Shader lightsourceShader("shaders/lightsource.vs", "shaders/lightsource.fs");
   
   // Set vertex data/buffers and configure vertex attributes
@@ -155,7 +155,7 @@ int main() {
   // Load image, create texture, and generate mipmaps
   int width, height, nrChannels;
   stbi_set_flip_vertically_on_load(true);
-  unsigned char *data = stbi_load("assets/oak_planks.png", &width, &height, &nrChannels, 0);
+  unsigned char *data = stbi_load("assets/textures/oak_planks.png", &width, &height, &nrChannels, 0);
   if (data) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -200,16 +200,15 @@ int main() {
     // Activate voxel shader
     voxelShader.use();
     voxelShader.setVec3("light.position", lightPos);
-    // voxelShader.setVec3("viewPos", cameriaPosition);
 
     // Light properties
-    voxelShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f); 
-    voxelShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+    voxelShader.setVec3("light.ambient", 0.5f, 0.5f, 0.5f); 
+    voxelShader.setVec3("light.diffuse", 0.7f, 0.7f, 0.7f);
     voxelShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
     // material properties
-    voxelShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-    voxelShader.setFloat("material.shininess", 64.0f);
+    voxelShader.setVec3("material.specular", 0.3f, 0.3f, 0.3f);
+    voxelShader.setFloat("material.shininess", 2.0f); // [2, 256]
 
     // Create transformations
     glm::mat4 model = glm::mat4(1.0f);
@@ -294,7 +293,7 @@ void renderGui(void) {
     ImGui::End();
     return;
   }
-    ImGui::SetWindowFocus("Texview Menu");
+  ImGui::SetWindowFocus("Texview Menu");
 
   const char* items[] = {"oak_planks.png", "acacia_planks.png", "dark_oak_planks.png", "jungle_planks.png", 
                          "bamboo_planks.png", "mangrove_planks.png", "spruce_planks.png", "birch_planks.png"};
@@ -346,7 +345,7 @@ unsigned int loadTexture(const std::string& textureName) {
   // Load texture data and generate mipmaps
   int width, height, nrChannels;
   stbi_set_flip_vertically_on_load(true);
-  std::string texturePath = "assets/" + textureName;
+  std::string texturePath = "assets/textures/" + textureName;
   unsigned char *data = stbi_load(texturePath.c_str(), &width, &height, &nrChannels, 0);
   if (data) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
