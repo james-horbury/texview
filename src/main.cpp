@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <string>
+#include <map>
 #include <vector>
 #include <algorithm>
 
@@ -295,23 +296,29 @@ void renderGui(void) {
   }
   ImGui::SetWindowFocus("Texview Menu");
 
-  const char* items[] = {"oak_planks.png", "acacia_planks.png", "dark_oak_planks.png", "jungle_planks.png", 
-                         "bamboo_planks.png", "mangrove_planks.png", "spruce_planks.png", "birch_planks.png"};
-  static int item_selected = 0; 
+  std::map<std::string, std::string> items = {
+    {"Oak Planks", "oak_planks.png"}, 
+    {"Acacia Planks", "acacia_planks.png"}, 
+    {"Dark Oak Planks", "dark_oak_planks.png"},
+    {"Jungle Planks", "jungle_planks.png"},
+    {"Bamboo Planks", "bamboo_planks.png"}, 
+    {"Mangrove Planks", "mangrove_planks.png"}, 
+    {"Spruce Planks", "spruce_planks.png"}, 
+    {"Birch Planks", "birch_planks.png"}
+  }; 
   
-  if (ImGui::CollapsingHeader("Asset Browser")) { 
-    if (ImGui::BeginListBox("Textures")) {
-      for (int i = 0; i < IM_ARRAYSIZE(items); i++) {
-        const bool is_selected = (item_selected == i);
-        if (ImGui::Selectable(items[i], is_selected))
-          item_selected = i;
-        if (is_selected)
-          ImGui::SetItemDefaultFocus(); 
-      }
+  std::vector<const char*> keys;
+  for (const auto& pair : items) {
+    keys.push_back(pair.first.c_str());
+  }
 
-      unsigned int textureID = loadTexture(items[item_selected]);
+  static int item_selected = -1;
+
+  if (ImGui::CollapsingHeader("Asset Browser")) { 
+    if (ImGui::ListBox("Textures", &item_selected, keys.data(), keys.size())) {
+      std::string key_selected = keys[item_selected];
+      unsigned int textureID = loadTexture(items[key_selected]);
       glBindTexture(GL_TEXTURE_2D, textureID);
-      ImGui::EndListBox();
     }
     ImGui::SameLine(); helpMarker("Use the listbox to control which texture is bound.");
   }
