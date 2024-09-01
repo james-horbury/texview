@@ -37,11 +37,18 @@ std::vector<Texture> textures;
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+// Lighting
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
 int main() {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
   
   // GLFW window creation
   GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OpenGL Texture Viewer", NULL, NULL);
@@ -62,69 +69,77 @@ int main() {
   // Configure global opengl state
   glEnable(GL_DEPTH_TEST);
 
-  Shader ourShader("shaders/shader.vs", "shaders/shader.fs");
+  Shader voxelShader("shaders/voxelshader.vs", "shaders/voxelshader.fs");
+  Shader lightsourceShader("shaders/lightsource.vs", "shaders/lightsource.fs");
   
   // Set vertex data/buffers and configure vertex attributes
   float vertices[] = {
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     // positions         // normals           // texture coords
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-  };
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
+  }; 
 
-  unsigned int VBO, VAO;
-  glGenVertexArrays(1, &VAO);
+  unsigned int VBO, voxelVAO;
+  glGenVertexArrays(1, &voxelVAO);
   glGenBuffers(1, &VBO);
-
-  glBindVertexArray(VAO);
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-  // Position attribute
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+  glBindVertexArray(voxelVAO);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0); 
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+  glEnableVertexAttribArray(2);
 
-  // Texture coordinate attribute
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1); 
+  unsigned int lightsourceVAO;
+  glGenVertexArrays(1, &lightsourceVAO);
+  glBindVertexArray(lightsourceVAO);
+
+  glBindBuffer(GL_ARRAY_BUFFER, VBO);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
 
   // Load default texture on start
   unsigned int texture_default;
@@ -140,7 +155,7 @@ int main() {
   // Load image, create texture, and generate mipmaps
   int width, height, nrChannels;
   stbi_set_flip_vertically_on_load(true);
-  unsigned char *data = stbi_load("assets/oak_planks.png", &width, &height, &nrChannels, 0);
+  unsigned char *data = stbi_load("assets/textures/oak_planks.png", &width, &height, &nrChannels, 0);
   if (data) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -153,8 +168,8 @@ int main() {
   textures.push_back({"oak_planks.png", texture_default});
 
   // Tell opengl which texture unit belongs to what sampler (only has to be done once)
-  ourShader.use();
-  ourShader.setInt("texture1", 0);
+  voxelShader.use();
+  voxelShader.setInt("material.diffuse", 0);
 
   // Create imgui context
   ImGui::CreateContext();
@@ -180,10 +195,20 @@ int main() {
     renderGui();
 
     ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
- 
-    // Activate shader
-    ourShader.use();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData()); 
+
+    // Activate voxel shader
+    voxelShader.use();
+    voxelShader.setVec3("light.position", lightPos);
+
+    // Light properties
+    voxelShader.setVec3("light.ambient", 0.5f, 0.5f, 0.5f); 
+    voxelShader.setVec3("light.diffuse", 0.7f, 0.7f, 0.7f);
+    voxelShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+    // material properties
+    voxelShader.setVec3("material.specular", 0.3f, 0.3f, 0.3f);
+    voxelShader.setFloat("material.shininess", 2.0f); // [2, 256]
 
     // Create transformations
     glm::mat4 model = glm::mat4(1.0f);
@@ -194,15 +219,29 @@ int main() {
     projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
     // Retrieve matrix uniform locations and pass to shaders
-    unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
-    unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
+    unsigned int modelLoc = glGetUniformLocation(voxelShader.ID, "model");
+    unsigned int viewLoc = glGetUniformLocation(voxelShader.ID, "view");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
 
-    ourShader.setMat4("projection", projection);
+    voxelShader.setMat4("projection", projection);
+    voxelShader.setMat4("view", view);
+    voxelShader.setMat4("model", model);
 
     // Render cube
-    glBindVertexArray(VAO);
+    glBindVertexArray(voxelVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    // Draw light source object
+    lightsourceShader.use();
+    lightsourceShader.setMat4("projection", projection);
+    lightsourceShader.setMat4("view", view);
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, lightPos);
+    model = glm::scale(model, glm::vec3(0.2f));
+    lightsourceShader.setMat4("model", model);
+
+    glBindVertexArray(lightsourceVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
  
     // Swap buffers and poll IO events
@@ -216,7 +255,8 @@ int main() {
   ImGui::DestroyContext();
 
   // Free all resources
-  glDeleteVertexArrays(1, &VAO);
+  glDeleteVertexArrays(1, &voxelVAO);
+  glDeleteVertexArrays(1, &lightsourceVAO);
   glDeleteBuffers(1, &VBO);
 
   glfwTerminate();
@@ -247,12 +287,13 @@ void renderGui(void) {
   IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing Dear ImGui context");
   IMGUI_CHECKVERSION();
  
-  ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_AlwaysAutoResize; 
+  ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize; 
   if (!ImGui::Begin("Texview Menu", nullptr, window_flags)) {
     // Early out if window is collapsed
     ImGui::End();
     return;
   }
+  ImGui::SetWindowFocus("Texview Menu");
 
   const char* items[] = {"oak_planks.png", "acacia_planks.png", "dark_oak_planks.png", "jungle_planks.png", 
                          "bamboo_planks.png", "mangrove_planks.png", "spruce_planks.png", "birch_planks.png"};
@@ -304,7 +345,7 @@ unsigned int loadTexture(const std::string& textureName) {
   // Load texture data and generate mipmaps
   int width, height, nrChannels;
   stbi_set_flip_vertically_on_load(true);
-  std::string texturePath = "assets/" + textureName;
+  std::string texturePath = "assets/textures/" + textureName;
   unsigned char *data = stbi_load(texturePath.c_str(), &width, &height, &nrChannels, 0);
   if (data) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
