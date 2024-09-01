@@ -190,8 +190,7 @@ int main() {
     // Start imgui frame and render gui
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::NewFrame(); 
 
     renderGui();
 
@@ -288,13 +287,30 @@ void renderGui(void) {
   IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing Dear ImGui context");
   IMGUI_CHECKVERSION();
  
+  // Default window flags
   ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize; 
+  
+  static bool unlock_window = false;
+
+  if (!unlock_window) {
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    window_flags |= ImGuiWindowFlags_NoMove;
+  }
+
+  ImGui::SetNextWindowFocus();
   if (!ImGui::Begin("Texview Menu", nullptr, window_flags)) {
     // Early out if window is collapsed
     ImGui::End();
     return;
   }
-  ImGui::SetWindowFocus("Texview Menu");
+
+  if (ImGui::CollapsingHeader("Window Options")) {
+    // TODO: Write skeleton for window options
+    if (ImGui::BeginTable("split", 2)) {
+      ImGui::TableNextColumn(); ImGui::Checkbox("Unlock window", &unlock_window);
+      ImGui::EndTable();
+    }
+  }
 
   std::map<std::string, std::string> items = {
     {"Oak Planks", "oak_planks.png"}, 
@@ -321,6 +337,28 @@ void renderGui(void) {
       glBindTexture(GL_TEXTURE_2D, textureID);
     }
     ImGui::SameLine(); helpMarker("Use the listbox to control which texture is bound.");
+  }
+
+  if (ImGui::CollapsingHeader("Lighting Options")) {
+    // TODO: Write skeleton for lighting options
+    ImGui::SeparatorText("Light Properties");
+
+    static float lightAmbReflect = 0.0f;
+    ImGui::SliderFloat("Ambient reflection", &lightAmbReflect, 0.0f, 1.0f, "%.3f");
+
+    static float lightDiffReflect = 0.0f;
+    ImGui::SliderFloat("Diffuse reflection", &lightDiffReflect, 0.0f, 1.0f, "%.3f");
+
+    static float lightSpecReflect = 0.0f;
+    ImGui::SliderFloat("Specular reflection", &lightSpecReflect, 0.0f, 1.0f, "%.3f");
+
+    ImGui::SeparatorText("Material Properties");
+
+    static float matSpecReflect = 0.0f;
+    ImGui::SliderFloat("Specular reflection", &matSpecReflect, 0.0f, 1.0f, "%.3f");
+    
+    static int matSpecExp = 2;
+    ImGui::SliderInt("Specular exponent (shininess)", &matSpecExp, 2, 256);  // these bounds for shininess are semiarbitrary
   }
 
   ImGui::End();
