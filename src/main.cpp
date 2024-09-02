@@ -147,30 +147,8 @@ int main() {
   glEnableVertexAttribArray(0);
 
   // Load default texture on start
-  unsigned int texture_default;
-  glGenTextures(1, &texture_default);
+  unsigned int texture_default = loadTexture("oak_planks.png");
   glBindTexture(GL_TEXTURE_2D, texture_default);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-  // Load image, create texture, and generate mipmaps
-  int width, height, nrChannels;
-  stbi_set_flip_vertically_on_load(true);
-  unsigned char *data = stbi_load("assets/textures/oak_planks.png", &width, &height, &nrChannels, 0);
-  if (data) {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  } else {
-    std::cout << "Failed to load texture" << std::endl;
-  }
-  stbi_image_free(data);
-
-  // Store default texture preemptivly
-  textures.push_back({"oak_planks.png", texture_default});
 
   // Tell opengl which texture unit belongs to what sampler (only has to be done once)
   voxelShader.use();
@@ -204,7 +182,7 @@ int main() {
     voxelShader.setVec3("light.diffuse", 0.7f, 0.7f, 0.7f);
     voxelShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
-    // material properties
+    // material properties 
     voxelShader.setVec3("material.specular", 0.3f, 0.3f, 0.3f);
     voxelShader.setFloat("material.shininess", 2.0f); // [2, 256]
 
@@ -395,15 +373,7 @@ unsigned int loadTexture(const std::string& textureName) {
   }
 
   unsigned int textureID;
-
   glGenTextures(1, &textureID);
-  glBindTexture(GL_TEXTURE_2D, textureID);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
   // Load texture data and generate mipmaps
   int width, height, nrChannels;
@@ -411,15 +381,33 @@ unsigned int loadTexture(const std::string& textureName) {
   std::string texturePath = "assets/textures/" + textureName;
   unsigned char *data = stbi_load(texturePath.c_str(), &width, &height, &nrChannels, 0);
   if (data) {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    GLenum format = GL_NONE;
+    switch (nrChannels) {
+      case 1:
+        format = GL_RED;
+        break;
+      case 3:
+        format = GL_RGB;
+        break;
+      case 4:
+        format = GL_RGBA;
+        break;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   } else {
     std::cout << "Failed to load texture: " << textureName << std::endl;
-  }
+  } 
+ 
   stbi_image_free(data);
-
-  // Store new texture info
-  textures.push_back({textureName, textureID});
+  textures.push_back({textureName, textureID}); // store new texture info
 
   return textureID;
 }
