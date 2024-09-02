@@ -33,10 +33,14 @@ struct Texture {
   unsigned int id;
 };
 
+// Vector to store texture data sequentially
 std::vector<Texture> textures;
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+
+// Custom path for imugi ini to be stored
+const char* custom_ini_path = "bin/imgui.ini";
 
 // Lighting
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
@@ -174,7 +178,11 @@ int main() {
 
   // Create imgui context
   ImGui::CreateContext();
+  ImGuiIO& io = ImGui::GetIO();
+  io.IniFilename = NULL;
+  
   ImGui::StyleColorsLight();
+  
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init("#version 330");
 
@@ -185,17 +193,7 @@ int main() {
 
     // Rendering commands
     glClearColor(0.86f, 0.86f, 0.86f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Start imgui frame and render gui
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame(); 
-
-    renderGui();
-
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData()); 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
     // Activate voxel shader
     voxelShader.use();
@@ -243,7 +241,19 @@ int main() {
 
     glBindVertexArray(lightsourceVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
- 
+
+    // Start imgui frame and render gui
+    ImGui::LoadIniSettingsFromDisk(custom_ini_path);
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame(); 
+
+    renderGui();
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    ImGui::SaveIniSettingsToDisk(custom_ini_path);
+
     // Swap buffers and poll IO events
     glfwSwapBuffers(window);
     glfwPollEvents();
@@ -291,13 +301,20 @@ void renderGui(void) {
   ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize; 
   
   static bool unlock_window = false;
+  static bool send_to_back = false;
 
   if (!unlock_window) {
     ImGui::SetNextWindowPos(ImVec2(0, 0));
     window_flags |= ImGuiWindowFlags_NoMove;
   }
 
-  ImGui::SetNextWindowFocus();
+  /*
+  if (send_to_back) {
+    window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+    ImGui::SetNextWindowFocus();
+  }
+  */
+
   if (!ImGui::Begin("Texview Menu", nullptr, window_flags)) {
     // Early out if window is collapsed
     ImGui::End();
@@ -305,9 +322,10 @@ void renderGui(void) {
   }
 
   if (ImGui::CollapsingHeader("Window Options")) {
-    // TODO: Write skeleton for window options
+    // TODO: Fix send to background option
     if (ImGui::BeginTable("split", 2)) {
       ImGui::TableNextColumn(); ImGui::Checkbox("Unlock window", &unlock_window);
+      ImGui::TableNextColumn(); ImGui::Checkbox("Send to background", &send_to_back);
       ImGui::EndTable();
     }
   }

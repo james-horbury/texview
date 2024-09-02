@@ -33,7 +33,7 @@ $(TARGET): $(SRC)
 
 # Clean target to remove compiled files
 clean:
-	rm -f $(TARGET) imgui.ini
+	rm -f $(TARGET) $(BIN_DIR)/imgui.ini
 
 # Phony targets
 .PHONY: all clean
