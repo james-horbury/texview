@@ -215,13 +215,18 @@ void render(GLFWwindow *window, Shader voxelShader, Shader lightsourceShader, un
     voxelShader.setVec3("light.position", lightPos);
 
     // Light properties
-    voxelShader.setVec3("light.ambient", 0.5f, 0.5f, 0.5f); 
-    voxelShader.setVec3("light.diffuse", 0.7f, 0.7f, 0.7f);
-    voxelShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+    static float lightAmbReflect = 0.5f;
+    static float lightDiffReflect = 0.7f;
+    static float lightSpecReflect = 1.0f;
+    voxelShader.setVec3("light.ambient", lightAmbReflect, lightAmbReflect, lightAmbReflect); 
+    voxelShader.setVec3("light.diffuse", lightDiffReflect, lightDiffReflect, lightDiffReflect);
+    voxelShader.setVec3("light.specular", lightSpecReflect, lightSpecReflect, lightSpecReflect);
 
     // material properties 
-    voxelShader.setVec3("material.specular", 0.3f, 0.3f, 0.3f);
-    voxelShader.setFloat("material.shininess", 2.0f); // [2, 256]
+    static float matSpecReflect = 0.3f;
+    static float matSpecExp = 2.0f;
+    voxelShader.setVec3("material.specular", matSpecReflect, matSpecReflect, matSpecReflect);
+    voxelShader.setFloat("material.shininess", matSpecExp); // [2, 256]
 
     // Create transformations
     glm::mat4 model = glm::mat4(1.0f);
@@ -241,7 +246,7 @@ void render(GLFWwindow *window, Shader voxelShader, Shader lightsourceShader, un
     voxelShader.setMat4("view", view);
     voxelShader.setMat4("model", model);
 
-    // Render cube
+    // Render voxel
     glBindVertexArray(voxelVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -263,7 +268,6 @@ void render(GLFWwindow *window, Shader voxelShader, Shader lightsourceShader, un
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame(); 
 
-    // RENDER GUI HERE
     IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing Dear ImGui context");
     IMGUI_CHECKVERSION();
    
@@ -328,25 +332,14 @@ void render(GLFWwindow *window, Shader voxelShader, Shader lightsourceShader, un
     }
 
     if (ImGui::CollapsingHeader("Lighting Options")) {
-      // TODO: Write skeleton for lighting options
       ImGui::SeparatorText("Light Properties");
-
-      static float lightAmbReflect = 0.0f;
       ImGui::SliderFloat("Ambient reflection", &lightAmbReflect, 0.0f, 1.0f, "%.3f");
-
-      static float lightDiffReflect = 0.0f;
       ImGui::SliderFloat("Diffuse reflection", &lightDiffReflect, 0.0f, 1.0f, "%.3f");
-
-      static float lightSpecReflect = 0.0f;
       ImGui::SliderFloat("Specular reflection##A", &lightSpecReflect, 0.0f, 1.0f, "%.3f");
 
       ImGui::SeparatorText("Material Properties");
-
-      static float matSpecReflect = 0.0f;
       ImGui::SliderFloat("Specular reflection##B", &matSpecReflect, 0.0f, 1.0f, "%.3f");
-      
-      static int matSpecExp = 2;
-      ImGui::SliderInt("Specular exponent (shininess)", &matSpecExp, 2, 256);  // these bounds for shininess are semiarbitrary
+      ImGui::SliderFloat("Specular exponent (shininess)", &matSpecExp, 2, 256);  // these bounds for shininess are semiarbitrary
     }
 
     ImGui::End();
@@ -360,95 +353,6 @@ void render(GLFWwindow *window, Shader voxelShader, Shader lightsourceShader, un
     glfwPollEvents();
   }
 }
-
-/*
-void renderGui(void) {
-  IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing Dear ImGui context");
-  IMGUI_CHECKVERSION();
- 
-  // Default window flags
-  ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize; 
-  
-  static bool unlock_window = false;
-  static bool send_to_back = false;
-
-  if (!unlock_window) {
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
-    window_flags |= ImGuiWindowFlags_NoMove;
-  }
-
-  if (send_to_back) {
-    window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
-    ImGui::SetNextWindowFocus();
-  }
-
-  if (!ImGui::Begin("Texview Menu", nullptr, window_flags)) {
-    // Early out if window is collapsed
-    ImGui::End();
-    return;
-  }
-
-  if (ImGui::CollapsingHeader("Window Options")) {
-    // TODO: Fix send to background option
-    if (ImGui::BeginTable("split", 2)) {
-      ImGui::TableNextColumn(); ImGui::Checkbox("Unlock window", &unlock_window);
-      ImGui::TableNextColumn(); ImGui::Checkbox("Send to background", &send_to_back);
-      ImGui::EndTable();
-    }
-  }
-
-  std::map<std::string, std::string> items = {
-    {"Oak Planks", "oak_planks.png"}, 
-    {"Acacia Planks", "acacia_planks.png"}, 
-    {"Dark Oak Planks", "dark_oak_planks.png"},
-    {"Jungle Planks", "jungle_planks.png"},
-    {"Bamboo Planks", "bamboo_planks.png"}, 
-    {"Mangrove Planks", "mangrove_planks.png"}, 
-    {"Spruce Planks", "spruce_planks.png"}, 
-    {"Birch Planks", "birch_planks.png"}
-  }; 
-  
-  std::vector<const char*> keys;
-  for (const auto& pair : items) {
-    keys.push_back(pair.first.c_str());
-  }
-
-  static int item_selected = -1;
-
-  if (ImGui::CollapsingHeader("Asset Browser")) { 
-    if (ImGui::ListBox("Textures", &item_selected, keys.data(), keys.size())) {
-      std::string key_selected = keys[item_selected];
-      unsigned int textureID = loadTexture(items[key_selected]);
-      glBindTexture(GL_TEXTURE_2D, textureID);
-    }
-    ImGui::SameLine(); helpMarker("Use the listbox to control which texture is bound.");
-  }
-
-  if (ImGui::CollapsingHeader("Lighting Options")) {
-    // TODO: Write skeleton for lighting options
-    ImGui::SeparatorText("Light Properties");
-
-    static float lightAmbReflect = 0.0f;
-    ImGui::SliderFloat("Ambient reflection", &lightAmbReflect, 0.0f, 1.0f, "%.3f");
-
-    static float lightDiffReflect = 0.0f;
-    ImGui::SliderFloat("Diffuse reflection", &lightDiffReflect, 0.0f, 1.0f, "%.3f");
-
-    static float lightSpecReflect = 0.0f;
-    ImGui::SliderFloat("Specular reflection##A", &lightSpecReflect, 0.0f, 1.0f, "%.3f");
-
-    ImGui::SeparatorText("Material Properties");
-
-    static float matSpecReflect = 0.0f;
-    ImGui::SliderFloat("Specular reflection##B", &matSpecReflect, 0.0f, 1.0f, "%.3f");
-    
-    static int matSpecExp = 2;
-    ImGui::SliderInt("Specular exponent (shininess)", &matSpecExp, 2, 256);  // these bounds for shininess are semiarbitrary
-  }
-
-  ImGui::End();
-}
-*/
 
 unsigned int loadTexture(const std::string& textureName) {
   // Check if texture has already been loaded
