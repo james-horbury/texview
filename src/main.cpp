@@ -24,7 +24,7 @@
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 
-void renderGui(void);
+void render(GLFWwindow *window, Shader voxelShader, Shader lightsourceShader, unsigned int voxelVAO, unsigned int lightsourceVAO);
 void helpMarker(const char* desc);
 unsigned int loadTexture(const std::string& textureName);
 
@@ -164,6 +164,43 @@ int main() {
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init("#version 330");
 
+  render(window, voxelShader, lightsourceShader, voxelVAO, lightsourceVAO);
+
+  // Destroy imgui context
+  ImGui_ImplGlfw_Shutdown();
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui::DestroyContext();
+
+  // Free all resources
+  glDeleteVertexArrays(1, &voxelVAO);
+  glDeleteVertexArrays(1, &lightsourceVAO);
+  glDeleteBuffers(1, &VBO);
+
+  glfwTerminate();
+  return 0;
+}
+
+void processInput(GLFWwindow *window) {
+  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+    glfwSetWindowShouldClose(window, true);
+  }
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+  glViewport(0, 0, width, height);
+}
+
+void helpMarker(const char* desc) {
+  ImGui::TextDisabled("(?)");
+  if (ImGui::BeginItemTooltip()) {
+    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+    ImGui::TextUnformatted(desc);
+    ImGui::PopTextWrapPos();
+    ImGui::EndTooltip();
+  }
+}
+
+void render(GLFWwindow *window, Shader voxelShader, Shader lightsourceShader, unsigned int voxelVAO, unsigned int lightsourceVAO) {
   // Render loop
   while(!glfwWindowShouldClose(window)) {
     // Input
@@ -220,13 +257,99 @@ int main() {
     glBindVertexArray(lightsourceVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
-    // Start imgui frame and render gui
+    // Init ImGui window
     ImGui::LoadIniSettingsFromDisk(custom_ini_path);
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame(); 
 
-    renderGui();
+    // RENDER GUI HERE
+    IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing Dear ImGui context");
+    IMGUI_CHECKVERSION();
+   
+    // Default window flags
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize; 
+    
+    static bool unlock_window = false;
+    static bool send_to_back = false;
+
+    if (!unlock_window) {
+      ImGui::SetNextWindowPos(ImVec2(0, 0));
+      window_flags |= ImGuiWindowFlags_NoMove;
+    }
+
+    /*
+    if (send_to_back) {
+      window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+      ImGui::SetNextWindowFocus();
+    }
+    */
+
+    if (!ImGui::Begin("Texview Menu", nullptr, window_flags)) {
+      // Early out if window is collapsed
+      ImGui::End();
+      return;
+    }
+
+    if (ImGui::CollapsingHeader("Window Options")) {
+      // TODO: Fix send to background option
+      if (ImGui::BeginTable("split", 2)) {
+        ImGui::TableNextColumn(); ImGui::Checkbox("Unlock window", &unlock_window);
+        ImGui::TableNextColumn(); ImGui::Checkbox("Send to background", &send_to_back);
+        ImGui::EndTable();
+      }
+    }
+
+    std::map<std::string, std::string> items = {
+      {"Oak Planks", "oak_planks.png"}, 
+      {"Acacia Planks", "acacia_planks.png"}, 
+      {"Dark Oak Planks", "dark_oak_planks.png"},
+      {"Jungle Planks", "jungle_planks.png"},
+      {"Bamboo Planks", "bamboo_planks.png"}, 
+      {"Mangrove Planks", "mangrove_planks.png"}, 
+      {"Spruce Planks", "spruce_planks.png"}, 
+      {"Birch Planks", "birch_planks.png"}
+    }; 
+    
+    std::vector<const char*> keys;
+    for (const auto& pair : items) {
+      keys.push_back(pair.first.c_str());
+    }
+
+    static int item_selected = -1;
+
+    if (ImGui::CollapsingHeader("Asset Browser")) { 
+      if (ImGui::ListBox("Textures", &item_selected, keys.data(), keys.size())) {
+        std::string key_selected = keys[item_selected];
+        unsigned int textureID = loadTexture(items[key_selected]);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+      }
+      ImGui::SameLine(); helpMarker("Use the listbox to control which texture is bound.");
+    }
+
+    if (ImGui::CollapsingHeader("Lighting Options")) {
+      // TODO: Write skeleton for lighting options
+      ImGui::SeparatorText("Light Properties");
+
+      static float lightAmbReflect = 0.0f;
+      ImGui::SliderFloat("Ambient reflection", &lightAmbReflect, 0.0f, 1.0f, "%.3f");
+
+      static float lightDiffReflect = 0.0f;
+      ImGui::SliderFloat("Diffuse reflection", &lightDiffReflect, 0.0f, 1.0f, "%.3f");
+
+      static float lightSpecReflect = 0.0f;
+      ImGui::SliderFloat("Specular reflection##A", &lightSpecReflect, 0.0f, 1.0f, "%.3f");
+
+      ImGui::SeparatorText("Material Properties");
+
+      static float matSpecReflect = 0.0f;
+      ImGui::SliderFloat("Specular reflection##B", &matSpecReflect, 0.0f, 1.0f, "%.3f");
+      
+      static int matSpecExp = 2;
+      ImGui::SliderInt("Specular exponent (shininess)", &matSpecExp, 2, 256);  // these bounds for shininess are semiarbitrary
+    }
+
+    ImGui::End();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -236,41 +359,9 @@ int main() {
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
-
-  // Destroy imgui context
-  ImGui_ImplGlfw_Shutdown();
-  ImGui_ImplOpenGL3_Shutdown();
-  ImGui::DestroyContext();
-
-  // Free all resources
-  glDeleteVertexArrays(1, &voxelVAO);
-  glDeleteVertexArrays(1, &lightsourceVAO);
-  glDeleteBuffers(1, &VBO);
-
-  glfwTerminate();
-  return 0;
 }
 
-void processInput(GLFWwindow *window) {
-  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-    glfwSetWindowShouldClose(window, true);
-  }
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-  glViewport(0, 0, width, height);
-}
-
-void helpMarker(const char* desc) {
-  ImGui::TextDisabled("(?)");
-  if (ImGui::BeginItemTooltip()) {
-    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-    ImGui::TextUnformatted(desc);
-    ImGui::PopTextWrapPos();
-    ImGui::EndTooltip();
-  }
-}
-
+/*
 void renderGui(void) {
   IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing Dear ImGui context");
   IMGUI_CHECKVERSION();
@@ -286,12 +377,10 @@ void renderGui(void) {
     window_flags |= ImGuiWindowFlags_NoMove;
   }
 
-  /*
   if (send_to_back) {
     window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
     ImGui::SetNextWindowFocus();
   }
-  */
 
   if (!ImGui::Begin("Texview Menu", nullptr, window_flags)) {
     // Early out if window is collapsed
@@ -346,12 +435,12 @@ void renderGui(void) {
     ImGui::SliderFloat("Diffuse reflection", &lightDiffReflect, 0.0f, 1.0f, "%.3f");
 
     static float lightSpecReflect = 0.0f;
-    ImGui::SliderFloat("Specular reflection", &lightSpecReflect, 0.0f, 1.0f, "%.3f");
+    ImGui::SliderFloat("Specular reflection##A", &lightSpecReflect, 0.0f, 1.0f, "%.3f");
 
     ImGui::SeparatorText("Material Properties");
 
     static float matSpecReflect = 0.0f;
-    ImGui::SliderFloat("Specular reflection", &matSpecReflect, 0.0f, 1.0f, "%.3f");
+    ImGui::SliderFloat("Specular reflection##B", &matSpecReflect, 0.0f, 1.0f, "%.3f");
     
     static int matSpecExp = 2;
     ImGui::SliderInt("Specular exponent (shininess)", &matSpecExp, 2, 256);  // these bounds for shininess are semiarbitrary
@@ -359,6 +448,7 @@ void renderGui(void) {
 
   ImGui::End();
 }
+*/
 
 unsigned int loadTexture(const std::string& textureName) {
   // Check if texture has already been loaded
