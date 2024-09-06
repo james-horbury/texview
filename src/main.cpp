@@ -201,12 +201,9 @@ void helpMarker(const char* desc) {
 }
 
 void render(GLFWwindow *window, Shader voxelShader, Shader lightsourceShader, unsigned int voxelVAO, unsigned int lightsourceVAO) {
-  // Render loop
   while(!glfwWindowShouldClose(window)) {
-    // Input
     processInput(window);
 
-    // Rendering commands
     glClearColor(0.86f, 0.86f, 0.86f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
@@ -271,7 +268,6 @@ void render(GLFWwindow *window, Shader voxelShader, Shader lightsourceShader, un
     IM_ASSERT(ImGui::GetCurrentContext() != NULL && "Missing Dear ImGui context");
     IMGUI_CHECKVERSION();
    
-    // Default window flags
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize; 
     
     static bool unlock_window = false;
@@ -348,7 +344,6 @@ void render(GLFWwindow *window, Shader voxelShader, Shader lightsourceShader, un
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     ImGui::SaveIniSettingsToDisk(custom_ini_path);
 
-    // Swap buffers and poll IO events
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
