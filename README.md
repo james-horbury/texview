@@ -16,22 +16,39 @@ To compile, simply execute the `make` command from the project directory. Use `m
 This project demonstrates a basic version of the Phong Lighting Model wherein a combination of the Phong Reflection BRDF and Lambertian Diffusion BRDF are 
 utilized to approximate a solution to the Rendering Equation. However, as this is an attempt at real-time rendering, the Rendering Equation used has been simplified 
 considerably in order for computation to stay performant. The most notable change may be the omission of the emissive light component and the removal of the integral in 
-front of the Bidirectional Reflectance Distribution Function (BRDF). [why is this?]
+front of the BRDF. [why is this?]
 
-[normal rendering equation]
+The Rendering Equation:
 
-$L_o(\mathbf{x}, \omega_o) = L_e(\mathbf{x}, \omega_o) + \int_{\Omega} f_r(\mathbf{x}, \omega_i, \omega_o) L_i(\mathbf{x}, \omega_i) (\omega_i \cdot \mathbf{n}) \, d\omega_i$
+$$
+L_o(\mathbf{x}, \vect{\omega}_o) = L_e(\mathbf{x}, \vect{\omega}_o) + \int_{\Omega} f_r(\mathbf{x}, \vecet{\omega}_i, \vect{\omega}_o) 
+L_i(\mathbf{x}, \vect{\omega}_i) (\vect{\omega}_i \cdot \mathbf{n}) \, d\vect{\omega}_i
+$$
 
-[reduced form]
+Reduced Form (what we use in our model):
 
-In essence, it is an attempt at accurately modeling outgoing light given the following parameters:
-- x = The position in space
-- $\vec{w}_o$ = Outgoing light vector
-- $\vec{w}_i$ = Incoming light vector
-- $L_i$ = Incoming light color
-- $\vec{n}$ = Normal vector
-- $\Theta$ = Incident angle
-- $\vec{R}$ = Reflection vector
+$$
+L_o(\mathbf{x}, \vect{\omega}_o) = (f_diffuse(\mathbf{x}, \vecet{\omega}_i, \vect{\omega}_o) + f_specular(\mathbf{x}, \vecet{\omega}_i, \vect{\omega}_o)
+L_i\cos(\theta)_i
+$$
+
+where,
+
+$
+f_diffuse(\mathbf{x}, \vecet{\omega}_i, \vect{\omega}_o) = C_diffuse
+$
+
+$
+f_specular(\mathbf{x}, \vecet{\omega}_i, \vect{\omega}_o)
+$
+
+x = The position in space
+$\vec{w}_o$ = Outgoing light vector
+$\vec{w}_i$ = Incoming light vector
+$L_i$ = Incoming light color
+$\vec{n}$ = Normal vector
+$\Theta$ = Incident angle
+$\vec{R}$ = Reflection vector
 
 As this is an attempt at real-time rendering, the Rendering Equation used has been simplified considerably in order for computation to stay performant. The most 
 notable change may be the omission of the emissive light component and the removal of the integral in front of the Bidirectional Reflectance Distribution Function 
