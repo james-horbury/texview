@@ -20,27 +20,17 @@ front of the BRDF. [why is this?]
 
 The Rendering Equation:
 
-$$
-L_o(\mathbf{x}, \vect{\omega}_o) = L_e(\mathbf{x}, \vect{\omega}_o) + \int_{\Omega} f_r(\mathbf{x}, \vecet{\omega}_i, \vect{\omega}_o) 
-L_i(\mathbf{x}, \vect{\omega}_i) (\vect{\omega}_i \cdot \mathbf{n}) \, d\vect{\omega}_i
-$$
+$L_o(\mathbf{x}, \vect{\omega}_o) = L_e(\mathbf{x}, \vect{\omega}_o) + \int_{\Omega} f_r(\mathbf{x}, \vecet{\omega}_i, \vect{\omega}_o) L_i(\mathbf{x}, \vect{\omega}_i) (\vect{\omega}_i \cdot \mathbf{n}) \, d\vect{\omega}_i$
 
 Reduced Form (what we use in our model):
 
-$$
-L_o(\mathbf{x}, \vect{\omega}_o) = (f_diffuse(\mathbf{x}, \vecet{\omega}_i, \vect{\omega}_o) + f_specular(\mathbf{x}, \vecet{\omega}_i, \vect{\omega}_o)
-L_i\cos(\theta)_i
-$$
+$L_o(\mathbf{x}, \vect{\omega}_o) = (f_diffuse(\mathbf{x}, \vecet{\omega}_i, \vect{\omega}_o) + f_specular(\mathbf{x}, \vecet{\omega}_i, \vect{\omega}_o)L_i\cos(\theta)_i$
 
 where,
 
-$
-f_diffuse(\mathbf{x}, \vecet{\omega}_i, \vect{\omega}_o) = C_diffuse
-$
+$f_diffuse(\mathbf{x}, \vecet{\omega}_i, \vect{\omega}_o) = C_diffuse$
 
-$
-f_specular(\mathbf{x}, \vecet{\omega}_i, \vect{\omega}_o)
-$
+$f_specular(\mathbf{x}, \vecet{\omega}_i, \vect{\omega}_o)$
 
 x = The position in space
 $\vec{w}_o$ = Outgoing light vector
