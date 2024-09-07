@@ -1,4 +1,4 @@
-# TexView: The OpenGL Texture Viewing Tool
+# TexView: The OpenGL Texture Viewing Tool (WIP)
 
 This project began as an adaptation of some exercises in the introductory sections of [learnopengl.com](https://learnopengl.com/Getting-started/Coordinate-Systems),
 by [Joey DeVries](https://github.com/JoeyDeVries). It evolved into an attempt at creating a simple texture viewer allowing a technical artist to preview textures and
