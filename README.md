@@ -25,7 +25,7 @@ Reduced Form (what we use in our model):
 
 
 
-such that,  
+such that, <br>
 
 $f_{\text{diffuse}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = C_{\text{diffuse}}$
 
