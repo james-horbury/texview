@@ -17,9 +17,9 @@ This project demonstrates a basic version of the Phong Lighting Model wherein a 
 a solution to the Rendering Equation. As this is an attempt at real-time rendering, however, the version of the rendering equation used has been simplified considerably for 
 computation to stay performant. 
 
-The Rendering Equation: <br>
+The Rendering Equation:
 
-$L_o(\mathbf{x}, \vec{\omega}_o) = L_e(\mathbf{x}, \vec{\omega}_o) + \int_{\omega} f_r(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) L_i(\mathbf{x}, \vec{\omega}_i) (\vec{\omega}_i \cdot \mathbf{n}) \, d\vec{\omega}_i$
+
 
 Reduced Form (what we use in our model):  
 
