@@ -1,4 +1,4 @@
-# TexView: The OpenGL Texture Viewer
+# TexView: The OpenGL Texture Viewing Tool
 
 This project began as an adaptation of some exercises in the introductory sections of [learnopengl.com](https://learnopengl.com/Getting-started/Coordinate-Systems),
 by [Joey DeVries](https://github.com/JoeyDeVries). It evolved into an attempt at creating a simple texture viewer allowing a technical artist to preview textures and
@@ -14,35 +14,40 @@ To compile, simply execute the `make` command from the project directory. Use `m
 ## The Theory
 
 This project demonstrates a basic version of the Phong Lighting Model wherein a combination of the Phong Reflection and Lambertian Diffusion BRDFs are 
-utilized to approximate a solution to the Rendering Equation. However, as this is an attempt at real-time rendering, the version of the Rendering Equation used has been simplified 
-considerably in order for computation to stay performant. The most notable change may be the omission of the emissive light component and the removal of the integral in 
-front of the BRDF placeholder. [why is this?]  
+utilized to approximate a solution to the Rendering Equation. As this is an attempt at real-time rendering, however, the version of the rendering equation used has been simplified 
+considerably so that computation to stay performant. The most notable change may be the omission of the emissive light component and the removal of the indefinite integral in 
+front of the BRDF placeholder. This is because the surfaces being modeled will not be emissive and we are only taking into account light coming from one direction. (Note: If we 
+wanted to get the true amount of incoming light at a point, and thereby keep the integral, we would have to check every possible incoming direction in the surrounding hemisphere)
 
 The Rendering Equation:  
 
-$L_o(\mathbf{x}, \vec{\omega}_o) = L_e(\mathbf{x}, \vec{\omega}_o) + \int_{\omega} f_r(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) L_i(\mathbf{x}, \vec{\omega}_i) (\vec{\omega}_i \cdot \mathbf{n}) \, d\vec{\omega}_i$
+$$
+L_o(\mathbf{x}, \vec{\omega}_o) = L_e(\mathbf{x}, \vec{\omega}_o) + \int_{\omega} f_r(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) L_i(\mathbf{x}, \vec{\omega}_i) (\vec{\omega}_i \cdot \mathbf{n}) \, d\vec{\omega}_i
+$$
 
 Reduced Form (what we use in our model):  
 
-$L_o(\mathbf{x}, \vec{\omega}_o) = (f_diffuse(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) + f_specular(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o)L_i\cos(\theta)_i$
+$$
+L_o(\mathbf{x}, \vec{\omega}_o) = (f_{\text{diffuse}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) + f_{\text{specular}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o)L_i\cos(\theta)_i
+$$
 
 where,  
 
-$f_{\text{diffuse}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = C_{\text{diffuse}}$
+$f_{\text{diffuse}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = C_{\text{diffuse}}$ (RGB color value represented by a vector)
 
 $f_{\text{specular}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = (\vec{\omega}_o \cdot \vec{R})^\sigma$
 
 x = The position in space,  
 $\vec{\omega}_o$ = Outgoing light vector,  
 $\vec{\omega}_i$ = Incoming light vector,  
-$L_o(\mathbf{x}, \vect{\omega}_o)$ = The outgoing radiance at point $\mathbf{x}$ in direction $\vec{\omega}_o$,  
-$L_i(\mathbf{x}, \vect{\omega}_i)$ = The incoming radiance at point $\mathbf{x}$ from direction $\vec{\omega}_i$,  
+$L_o(\mathbf{x}, \vec{\omega}_o)$ = The outgoing radiance at point $\mathbf{x}$ in direction $\vec{\omega}_o$,  
+$L_i(\mathbf{x}, \vec{\omega}_i)$ = The incoming radiance at point $\mathbf{x}$ from direction $\vec{\omega}_i$,  
 $\vec{R}$ = The reflection vector,  
 $\sigma$ = Shininess (intensity of specular highlights).  
 
 such that, 
 
-
+$\vec{R} = -\vec{\omega}_i - 2(-\vec{\omega}_i \cdot \vec{n})\vec{n}
 
 ## Notes
 
