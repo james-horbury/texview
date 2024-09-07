@@ -27,11 +27,8 @@ Reduced Form (what we use in our model):
 
 such that,
 
-$$
-f_{\text{diffuse}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = C_{\text{diffuse}}
+$f_{\text{specular}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = (\vec{\omega}_o \cdot \vec{R})^\sigma$
 
-f_{\text{specular}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = (\vec{\omega}_o \cdot \vec{R})^\sigma
-$$
 
 The most notable change may be the omission of the emissive light component and the removal of the indefinite integral in front of the BRDF placeholder. This is because the 
 surfaces being modeled will generally not be emissive and we are only taking into account light coming from one direction. (Note: If we wanted to get the true amount of incoming 
