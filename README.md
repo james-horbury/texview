@@ -19,18 +19,17 @@ computation to stay performant.
 
 The Rendering Equation:
 
-
+$L_o(\mathbf{x}, \vec{\omega}_o) = L_e(\mathbf{x}, \vec{\omega}_o) + \int_{\Omega} f_r(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) L_i(\mathbf{x}, \vec{\omega}_i) (\vec{\omega}_i \cdot \mathbf{n})d\vec{\omega}_i$
 
 Reduced Form (what we use in our model):  
 
-
+$L_o(\mathbf{x}, \vec{\omega}_o) = (f_{\text{diffuse}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) + f_{\text{specular}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o))L_i\cos(\theta)_i$
 
 such that,
 
-$f_{\text{diffuse}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = C_{\text{diffuse}}$
+$f_{\text{diffuse}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = c_{\text{diffuse}}$
 
 $f_{\text{specular}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = (\vec{\omega}_o \cdot \vec{R})^\sigma$
-
 
 The most notable change may be the omission of the emissive light component and the removal of the indefinite integral in front of the BRDF placeholder. This is because the 
 surfaces being modeled will generally not be emissive and we are only taking into account light coming from one direction. (Note: If we wanted to get the true amount of incoming 
