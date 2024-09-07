@@ -23,11 +23,11 @@ The Rendering Equation:
 
 Reduced Form (what we use in our model):  
 
-$L_o(\mathbf{x}, \vec{\omega}_o) = (f_{\text{diffuse}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) + f_{\text{specular}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o)L_i\cos(\theta)_i$
+
 
 such that,  
 
-$f_{\text{diffuse}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = C_{\text{diffuse}}$ (RGB color value represented by a vector)
+$f_{\text{diffuse}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = C_{\text{diffuse}}$
 
 $f_{\text{specular}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = (\vec{\omega}_o \cdot \vec{R})^\sigma$
 
