@@ -27,6 +27,8 @@ Reduced Form (what we use in our model):
 
 such that,
 
+$f_{\text{diffuse}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = C_{\text{diffuse}}$
+
 $f_{\text{specular}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = (\vec{\omega}_o \cdot \vec{R})^\sigma$
 
 
