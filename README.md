@@ -20,24 +20,24 @@ front of the BRDF placeholder. [why is this?]
 
 The Rendering Equation:  
 
-$L_o(\mathbf{x}, \vect{\omega}_o) = L_e(\mathbf{x}, \vect{\omega}_o) + \int_{\omega} f_r(\mathbf{x}, \vect{\omega}_i, \vect{\omega}_o) L_i(\mathbf{x}, \vect{\omega}_i) (\vect{\omega}_i \cdot \mathbf{n}) \, d\vect{\omega}_i$
+$L_o(\mathbf{x}, \vec{\omega}_o) = L_e(\mathbf{x}, \vec{\omega}_o) + \int_{\omega} f_r(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) L_i(\mathbf{x}, \vec{\omega}_i) (\vec{\omega}_i \cdot \mathbf{n}) \, d\vec{\omega}_i$
 
 Reduced Form (what we use in our model):  
 
-$L_o(\mathbf{x}, \vect{\omega}_o) = (f_diffuse(\mathbf{x}, \vect{\omega}_i, \vect{\omega}_o) + f_specular(\mathbf{x}, \vect{\omega}_i, \vect{\omega}_o)L_i\cos(\theta)_i$
+$L_o(\mathbf{x}, \vec{\omega}_o) = (f_diffuse(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) + f_specular(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o)L_i\cos(\theta)_i$
 
 where,  
 
-$f_diffuse(\mathbf{x}, \vect{\omega}_i, \vect{\omega}_o) = C_diffuse$
+$f_{\text{diffuse}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = C_{\text{diffuse}}$
 
-$f_specular(\mathbf{x}, \vect{\omega}_i, \vect{\omega}_o) = (\vect{\omega}_o \cdot \vect{R})^\sigma$
+$f_{\text{specular}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = (\vec{\omega}_o \cdot \vec{R})^\sigma$
 
 x = The position in space,  
-$\vect{\omega}_o$ = Outgoing light vector,  
-$\vect{\omega}_i$ = Incoming light vector,  
-$L_o(\mathbf{x}, \vect{\omega}_o)$ = The outgoing radiance at point $\mathbf{x}$ in direction $\vect{\omega}_o$,  
-$L_i(\mathbf{x}, \vect{\omega}_i)$ = The incoming radiance at point $\mathbf{x}$ from direction $\vect{\omega}_i$,  
-$\vect{R}$ = The reflection vector,  
+$\vec{\omega}_o$ = Outgoing light vector,  
+$\vec{\omega}_i$ = Incoming light vector,  
+$L_o(\mathbf{x}, \vect{\omega}_o)$ = The outgoing radiance at point $\mathbf{x}$ in direction $\vec{\omega}_o$,  
+$L_i(\mathbf{x}, \vect{\omega}_i)$ = The incoming radiance at point $\mathbf{x}$ from direction $\vec{\omega}_i$,  
+$\vec{R}$ = The reflection vector,  
 $\sigma$ = Shininess (intensity of specular highlights).  
 
 such that, 
