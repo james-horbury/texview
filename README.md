@@ -51,12 +51,14 @@ $\vec{R} = -\vec{\omega}_i - 2(-\vec{\omega}_i \cdot \vec{n})\vec{n}$
 
 ## User Guide
 
+![window_options](assets/media/demo1.gif)
 
+![asset_browser](assets/media/demo2.gif)
+
+![lighting_options](assets/media/demo3.gif)
 
 ## Notes
 
 An ImGui.ini file will be automatically created after first running the program. This will preserve ImGui window information for subsequent instances but will be 
 removed following the use of the `make clean` command.
 
-
-![demo](assets/media/demo.gif)
