@@ -51,11 +51,11 @@ $\vec{R} = -\vec{\omega}_i - 2(-\vec{\omega}_i \cdot \vec{n})\vec{n}$
 
 ## User Guide
 
-![window_options](assets/media/demo1.gif)
+![demo1](assets/media/demo1.gif)
 
-![asset_browser](assets/media/demo2.gif)
+![demo2](assets/media/demo2.gif)
 
-![lighting_options](assets/media/demo3.gif)
+![demo3](assets/media/demo3.gif)
 
 ## Notes
 
