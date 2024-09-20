@@ -1,9 +1,10 @@
-// Ignore all media
-assets/media/*
+// Ignore certain media
+assets/media/*.mp4
+assets/media/*.tex
 
 // Ignore local builds of libraries
-bin/assimp/build/*
-bin/glfw/build/*
+lib/assimp/build/*
+lib/glfw/build/*
 
 // Ignore generated files and binaries
 bin/*
