@@ -27,7 +27,7 @@ $L_o(\mathbf{x}, \vec{\omega}_o) = (f_{\text{diffuse}}(\mathbf{x}, \vec{\omega}_
 
 such that,
 
-$f_{\text{diffuse}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = c_{\text{diffuse}}$
+$f_{\text{diffuse}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o)$ $= c_{\text{diffuse}}$
 
 $f_{\text{specular}}(\mathbf{x}, \vec{\omega}_i, \vec{\omega}_o) = (\vec{\omega}_o \cdot \vec{R})^\sigma$
 
